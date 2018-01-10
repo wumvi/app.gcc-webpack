@@ -1,0 +1,1 @@
+import {Card, Place} from './common'; /** @type {Place} */

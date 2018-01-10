@@ -1,0 +1,25 @@
+{
+  "name": "wumvi/code.build",
+  "description": "Google closure build",
+  "type": "app",
+  "minimum-stability": "dev",
+  "prefer-stable": true,
+  "autoload": {
+    "psr-4": {
+      "CodeBuilder\\": "src"
+    }
+  },
+  "require": {
+    "symfony/yaml": "@stable",
+    "ulrichsg/getopt-php": "@stable"
+  },
+  "require-dev": {
+  },
+  "version": "1.0.10",
+  "authors": [
+	{
+		"name": "Kozlenko Vitaliy",
+		"role": "Developer"
+	}
+  ]
+}

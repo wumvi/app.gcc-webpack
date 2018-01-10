@@ -1,0 +1,16 @@
+{
+  "author": {
+    "name": "Vitaliy Kozlenko"
+  },
+  "dependencies": {
+    "google-closure-library": "*"
+  },
+  "description": "Gulp build js",
+  "devDependencies": {
+    "webpack": "^2.4.1"
+  },
+  "name": "google.closure.builder",
+  "license": "MIT",
+  "optionalDependencies": {},
+  "version": "1.3.4"
+}

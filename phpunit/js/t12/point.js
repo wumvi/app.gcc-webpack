@@ -1,0 +1,1 @@
+import {Entry as Alias} from './entry'; /** @type {Alias} */

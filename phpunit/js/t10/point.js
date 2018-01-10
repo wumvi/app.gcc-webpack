@@ -1,0 +1,1 @@
+import Entry from './dir/entry.ext'; /** @type {Entry} */
