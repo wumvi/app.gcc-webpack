@@ -167,7 +167,7 @@ class GoogleClosure
             $jsCode
         );
         $jsCode = preg_replace_callback(
-            '/import\s+[\'"]([^\'"]+)[\'"];/',
+            '/import\s+[\'"]([^\'"]+)[\'"]/',
             function ($matches) {
                 $path = $this->getPathForResolutionModeBrowser($matches[1]);
 
