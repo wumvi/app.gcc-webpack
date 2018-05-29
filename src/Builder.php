@@ -6,10 +6,13 @@ namespace CodeBuilder;
 use CodeBuilder\Build\GoogleClosure;
 use CodeBuilder\Exception\BuilderException;
 use CodeBuilder\Exception\CompileException;
+use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Yaml\Yaml;
 
 class Builder
 {
+    private const CACHE_BIN = 'bin/';
+
     /**
      * @var string
      */
@@ -39,10 +42,10 @@ class Builder
      * @param string $outputDir
      * @param string $inputDir
      * @param string $bundleName
-     * @param bool   $isCheckOnly
+     * @param bool $isCheckOnly
      * @param string $cacheDir
      *
-     * @throws BuilderException
+     * @throws
      */
     public function run(string $inputDir, string $outputDir, string $bundleName, bool $isCheckOnly, string $cacheDir): void
     {
@@ -50,6 +53,8 @@ class Builder
         $this->inputDir = $inputDir;
         $this->isCheckOnly = $isCheckOnly;
         $this->cacheDir = $cacheDir;
+        $filesystem = new Filesystem();
+        $filesystem->mkdir($this->cacheDir);
 
         $externFile = $this->inputDir . 'externs/list.yaml';
         if (is_readable($externFile)) {
@@ -82,6 +87,12 @@ class Builder
         }
     }
 
+    /**
+     * @param string $buildName
+     * @param string $file
+     *
+     * @throws
+     */
     private function build(string $buildName, string $file): void
     {
         $googleClosure = new GoogleClosure('/tmp/build/' . $buildName, $this->externs);
@@ -90,7 +101,7 @@ class Builder
         $runRoot = realpath(dirname($_SERVER['PHP_SELF'])) . DIRECTORY_SEPARATOR;
 
         echo $buildName, "\t";
-        $outputFile = $this->outputDir . $buildName . '.js';
+        $outputFullFilename = $this->outputDir . $buildName . '.js';
 
         $cmdList = [
             '-jar ' . $runRoot . 'bin/closure-compiler.jar',
@@ -98,7 +109,7 @@ class Builder
             '--warning_level VERBOSE',
             '--generate_exports',
             // '--formatting PRETTY_PRINT',
-            '--jscomp_error checkTypes',
+            '--jscomp_error strictCheckTypes',
             '--jscomp_error misplacedTypeAnnotation',
             '--jscomp_error missingReturn',
             '--jscomp_error newCheckTypes',
@@ -115,13 +126,12 @@ class Builder
 
             '--hide_warnings_for ' . $runRoot . 'node_modules/google-closure-library/closure/goog/base.js',
 
-            '--new_type_inf',
             '--dependency_mode STRICT',
             '--module_resolution BROWSER',
             '--output_wrapper "(function() {%output%}).call(window);"',
             '--language_in ECMASCRIPT6',
             '--language_out ECMASCRIPT5_STRICT',
-            '--js_output_file ' . $outputFile . ' ' .
+            '--js_output_file ' . $outputFullFilename . ' ' .
             '--js ' . $runRoot . 'node_modules/google-closure-library/closure/goog/base.js',
         ];
 
@@ -149,8 +159,10 @@ class Builder
             }
 
             $cacheDiff = array_diff($cacheNow, $cacheOld);
-            if (!$cacheDiff) {
+            $cacheBinFile = $this->getCacheBinDir() . $buildName . '.js';
+            if (!$cacheDiff && is_readable($cacheBinFile)) {
                 echo 'CACHE', PHP_EOL;
+                copy($cacheBinFile, $outputFullFilename);
                 return;
             }
         }
@@ -167,19 +179,19 @@ class Builder
             throw new CompileException($cmd, $output, $exitCode);
         }
 
-        if (!is_file($outputFile)) {
+        if (!is_file($outputFullFilename)) {
             echo 'ERROR', PHP_EOL;
             throw new BuilderException(
-                'File "' . $outputFile . '" not found',
+                'File "' . $outputFullFilename . '" not found',
                 BuilderException::OUTPUT_FILE_NOT_FOUND
             );
         }
 
-        $outFileSize = filesize($outputFile);
+        $outFileSize = filesize($outputFullFilename);
         if (!$outFileSize) {
             echo 'ERROR', PHP_EOL;
             throw new BuilderException(
-                'File size of "' . $outputFile . '" is zero',
+                'File size of "' . $outputFullFilename . '" is zero',
                 BuilderException::OUTPUT_FILE_SIZE_IS_ZERO
             );
         }
@@ -198,9 +210,19 @@ class Builder
 
             fwrite($fw, $cacheRaw);
             fclose($fw);
+
+            $filesystem = new Filesystem();
+            $filesystem->mkdir($this->getCacheBinDir());
+
+            copy($outputFullFilename, $this->getCacheBinDir() . $buildName . '.js');
         }
 
         echo 'OK', PHP_EOL;
-        echo 'File ' . $outputFile . ' is ' . $outFileSize, PHP_EOL;
+        echo 'File ' . $outputFullFilename . ' is ' . $outFileSize, PHP_EOL;
+    }
+
+    private function getCacheBinDir(): string
+    {
+        return $this->cacheDir . self::CACHE_BIN;
     }
 }

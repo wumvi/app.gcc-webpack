@@ -11,6 +11,7 @@
   },
   "require": {
     "symfony/yaml": "@stable",
+    "symfony/filesystem": "@stable",
     "ulrichsg/getopt-php": "@stable"
   },
   "require-dev": {

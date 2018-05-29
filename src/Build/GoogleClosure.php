@@ -54,6 +54,8 @@ class GoogleClosure
      * @param string $root Базовая директория
      *
      * @return array Массив файлов
+     *
+     * @throws
      */
     public function run(string $entryPoint, string $root): array
     {
@@ -287,6 +289,8 @@ class GoogleClosure
      * @param string $subdir Относительная папка
      *
      * @return ImportOnly[]|ImportModule[] Список моделей import после парсинга
+     *
+     * @throws
      */
     private function parseImportPart(string $importPart, string $root, string $subdir): array
     {
@@ -379,6 +383,8 @@ class GoogleClosure
      * @param string $subDir Относительная папка
      *
      * @return string Абсолютное имя файла
+     *
+     * @throws
      */
     private function getFilenameByPrefix(string $file, string $root, string $subDir): string
     {
